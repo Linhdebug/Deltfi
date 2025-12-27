@@ -1,73 +1,62 @@
-const canvas = document.getElementById("battle");
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
 
-// Alma
-let soul = { x: 190, y: 140, size: 10, speed: 3 };
-let bullets = [];
-let hp = 20;
+let mode = null;
+let keys = {};
 
-// Teclas
-const keys = {};
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+const soulImg = new Image();
+soulImg.src = "soul.png";
 
-// Crear balas
-setInterval(() => {
-    bullets.push({ x: Math.random() * 390, y: 0, size: 6, speed: 2 });
-}, 800);
+const soul = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    size: 16,
+    speed: 3
+};
 
-function update() {
-    // Movimiento
-    if (keys["ArrowUp"]) soul.y -= soul.speed;
-    if (keys["ArrowDown"]) soul.y += soul.speed;
-    if (keys["ArrowLeft"]) soul.x -= soul.speed;
-    if (keys["ArrowRight"]) soul.x += soul.speed;
+/* ---------- INICIO DEL JUEGO ---------- */
+function startGame(selected) {
+    mode = selected;
+    document.getElementById("menu").style.display = "none";
+    canvas.style.display = "block";
 
-    // Límites
-    soul.x = Math.max(0, Math.min(390, soul.x));
-    soul.y = Math.max(0, Math.min(290, soul.y));
+    if (mode === "mobile") {
+        document.getElementById("controls").style.display = "block";
+    }
 
-    // Balas
-    bullets.forEach(b => b.y += b.speed);
-
-    // Colisiones
-    bullets.forEach(b => {
-        if (
-            soul.x < b.x + b.size &&
-            soul.x + soul.size > b.x &&
-            soul.y < b.y + b.size &&
-            soul.y + soul.size > b.y
-        ) {
-            hp--;
-            b.y = 400; // quitar bala
-        }
-    });
-
-    bullets = bullets.filter(b => b.y < 300);
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Alma
-    ctx.fillStyle = "red";
-    ctx.fillRect(soul.x, soul.y, soul.size, soul.size);
-
-    // Balas
-    ctx.fillStyle = "white";
-    bullets.forEach(b => {
-        ctx.fillRect(b.x, b.y, b.size, b.size);
-    });
-
-    // HP
-    ctx.fillStyle = "white";
-    ctx.fillText("HP: " + hp, 10, 20);
-}
-
-function loop() {
-    update();
-    draw();
     requestAnimationFrame(loop);
 }
 
-loop();
+/* ---------- CONTROLES PC ---------- */
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+/* ---------- CONTROLES MÓVIL ---------- */
+function press(dir) {
+    keys[dir] = true;
+}
+
+function release(dir) {
+    keys[dir] = false;
+}
+
+/* ---------- LOOP PRINCIPAL ---------- */
+function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (keys["ArrowUp"] || keys["up"]) soul.y -= soul.speed;
+    if (keys["ArrowDown"] || keys["down"]) soul.y += soul.speed;
+    if (keys["ArrowLeft"] || keys["left"]) soul.x -= soul.speed;
+    if (keys["ArrowRight"] || keys["right"]) soul.x += soul.speed;
+
+    ctx.drawImage(
+        soulImg,
+        soul.x - soul.size / 2,
+        soul.y - soul.size / 2,
+        soul.size,
+        soul.size
+    );
+
+    requestAnimationFrame(loop);
+}
